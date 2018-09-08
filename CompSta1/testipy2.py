@@ -49,5 +49,7 @@ print(ii)
 print(iii)
 print(iv)
 
-9007199254740991
-print (stL(rnp.iinfo(np.float64).max))
+maxi = 9007199254740991
+maxii = np.finfo(np.float64).max
+
+print(maxii)
