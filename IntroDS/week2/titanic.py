@@ -5,6 +5,8 @@ import os
 from IPython.display import display, HTML
 import matplotlib as mlp
 import seaborn as sns
+import simplejson
+import json
 
 filepath = os.getcwd() + "\\IntroDS\\week2\\"
 
@@ -45,9 +47,15 @@ df['Fare'].fillna(meanFare, inplace=True)
 df.fillna(df.mode(axis=0), inplace=True)
 #print(df.head(0))
 
-#df.to_csv(filepath + 'wrangled_data.csv')
-#df.to_json(filepath +'wrangled_data.json', orient='records')
+df.to_csv(filepath + 'wrangled_data.csv')
+df.to_json(filepath + 'wrangled_data.csv')
 
+""" with open(filepath + 'wrangled_data.json', 'r') as handle:
+    parsed = json.load(handle)
+
+with open(filepath + 'wrangled_data.json', 'wt') as out:
+    res = json.dump(parsed, out, sort_keys=True, indent=4, separators=(',', ': '))
+ """
 print('Average traveller')
 print(df[['Age', 'Fare']].median())
 print(df.mode())
@@ -59,11 +67,18 @@ print('Average alive traveller')
 print(avg_alive[['Age', 'Fare']].median())
 print(avg_alive.mode())
 
+print('quantiles')
+print(avg_alive.quantile(0.5))
+
 print('Average dead traveller')
 print(avg_ded[['Age', 'Fare']].median())
 print(avg_ded.mode())
 
-#sns.pairplot(df, hue='Survived', kind='reg')
-sns.pairplot(avg_alive, hue='Survived', kind='reg')
+print('quantiles')
+print(avg_ded.quantile(0.5))
+
+sns.set_palette("husl")
+sns.pairplot(df, hue='Survived', kind='reg')
+#sns.pairplot(avg_alive, hue='Survived', kind='reg')
 #sns.pairplot(avg_ded, hue='Survived')
 #pd.plotting.scatter_matrix(df, alpha=0.2, figsize=(6, 6), diagonal='kde')
