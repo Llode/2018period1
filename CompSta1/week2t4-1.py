@@ -17,28 +17,23 @@ def Kh(x1,x2):
     second = np.exp(-(x1**2 + x2**2)/(2*h**2))
     return first*second
 
+def kh_m(x1,x2):
+    first = (2*np-pi)**(-1)
+    norm = x1**2 + x2**2
+    second = np.exp((-(norm))/2)
+    return first*second
+
 def kernel_density(t, x1,x2, h):
     y = np.zeros(len(t))
     for i in range(len(t)):
         y[i] = np.mean(Kh(((t[i] - x1)/ h),((t[i] - x2)/ h))) / h
     return y
 
-t = np.linspace(1.0, 150.0, 300)
-matrix = np.column_stack((bwt, age))
-h=5
-
-
-plt.plot(t, kernel_density(t, bwt,age, h), label='h=5.0')
-
-
-#plt.hist2d(bwt,age)
-Kres = Kh(age,bwt)
-matrix = np.column_stack((bwt, age, Kres))
-print(len(Kres), np.max(Kres))
-print(Kres)
-print(Kh(25,120))
-#sns.kdeplot(bwt, age, kernel='gau')
-
+def kernel_density_m(t, x1,x2, h):
+    y = np.zeros(len(t))
+    for i in range(len(t)):
+        y[i] = np.mean(kh_m(((t[i] - x1)/ h),((t[i] - x2)/ h))) / h**2
+    return y
 
 
 def LOO(x,y):
@@ -50,10 +45,28 @@ def LOO(x,y):
 
     return(t, logls)
 
+t = np.linspace(1.0, 175,300)
+h=5
+
+kernel_h = Kh(age,bwt)
+density = kernel_density(t,bwt, age, h)
+density_q = kernel_density(t,120,25,h)
+denq = np.mean(density_q)
+print('density at bwt=120 age=25 ', denq)
+
 hs, logls = LOO(bwt,age)
 plt.hist(bwt, 30, normed=True)
+plt.show()
+
 h_opt = hs[np.argmax(logls)]
 print("Optimal h:", h_opt)
+
 t = np.linspace(1.0, 10.0, 30)
-plt.plot(t, kernel_density(t, bwt,age, h_opt))
+density_opt = kernel_density(t, bwt,age, h_opt)
+denq_op = np.mean(density_opt)
+print('density at bwt=120 age=25 ', denq_op)
+
+plt.hist2d(bwt,age)
+plt.show()
+sns.kdeplot(bwt, age, kernel='gau')
 plt.show()

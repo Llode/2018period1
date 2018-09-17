@@ -9,63 +9,64 @@ babies_full = pd.read_csv("http://www.helsinki.fi/~ahonkela/teaching/compstats1/
 
 # Pick a subset
 babies1 = babies_full.iloc[(babies_full['gestation']>=273).values]
-
 babiesYoung = babies1.query('age<26')
 babiesOld = babies1.query('age>=26')
+
+smoker = babies1.query('smoke>0')
+nonSmoker = babies1.query('smoke<1')
 
 #print(babies1.head(10))
 
 X1 = babiesYoung['bwt'].mean()
 X2 = babiesOld['bwt'].mean()
-t = np.abs(X1-X2)
+
 s1 = np.var(babiesYoung['bwt'])
 s2 = np.var(babiesOld['bwt'])
 N1 = len(babiesYoung.index)
 N2 = len(babiesOld.index)
 
+truediff = np.abs(X1-X2)
+
 def sTest(X1,X2,s1,s2,N1,N2):
     return (X1-X2)/np.sqrt((s1/N1)+(s2/N2))
 
 tX, pX = sst.ttest_ind(babiesYoung['bwt'], babiesOld['bwt'], equal_var=False)
+
+
 tXf = sTest(X1,X2,s1,s2,N1,N2)
-print('pFunktio ', pX)
+print('P-value ', pX)
+print('T-value ', tX)
+print('bm', tXf )
 print('t oma ', tXf)
+print('true abs ', truediff)
 df = N1+N2 -2
 pXf = sst.t.cdf(tXf,df=df)
 t_val = sst.t.ppf([pXf], df)
-print('t_val ', t_val)
+print('t_val_check ', t_val)
 print('pXf ', pXf)
 
+oldSmoker = babiesOld.query('smoke==1')['bwt']
+oldNonsmoker = babiesOld.query('smoke==0')['bwt']
+youngSmoker = babiesYoung.query('smoke==1')['bwt']
+youngNonsmoker = babiesYoung.query('smoke==0')['bwt']
+
+N_perm = 50000
 
 
-#vectors
-Ismoker = babies1.query('smoke==1')
-Inonsmoker = babies1.query('smoke==0')
+truediff_smoke = truediff
 
-smokermean = Ismoker.bwt.mean()
-nonsmokermean = Inonsmoker.bwt.mean()
-truediff_smoke = np.float64(np.abs(smokermean - nonsmokermean))
-
-
-tX, pX = sst.ttest_ind(Ismoker['bwt'], Inonsmoker['bwt'], equal_var=False)
-print(tX, pX)
 print('smoker mean ', truediff_smoke)
-
-
-N_perm = 50
+print(oldNonsmoker.mean(), oldNonsmoker.mean(), youngNonsmoker.mean(), youngSmoker.mean())
 meandiffs = np.zeros(N_perm)
-numsmokers = sum(Ismoker.bwt)
-
 for i in range(N_perm):
-    z = npr.permutation(len(Ismoker))
-    zz =  npr.permutation(len(Inonsmoker))
+    z1 = npr.permutation(oldSmoker)
+    z2 = npr.permutation(youngSmoker)
+    z3 = npr.permutation(oldNonsmoker)
+    z4 = npr.permutation(youngNonsmoker)
+    diff1 = np.concatenate((z1,z3))
+    diff2 = np.concatenate((z2,z4))
+    meandiffs[i] = np.abs(diff1.mean() - diff2.mean())
 
-    #meandiffs[i] = np.float64(np.abs(z['bwt'].mean() - zz['bwt'].mean()))
 
-# print(meandiffs)
-# print(len(meandiffs))
-# print(np.sum(truediff_smoke <= meandiffs))
-# print('p-value:', np.float64((np.sum(truediff_smoke < meandiffs)+1)/(len(meandiffs)+1)))
-
-# arr = range(0,8)
-# print(truediff_smoke < meandiffs)
+#print(meandiffs)
+print('p-value:', (np.sum(truediff_smoke <= meandiffs)+1)/(len(meandiffs)+1))
