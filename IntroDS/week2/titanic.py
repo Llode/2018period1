@@ -5,7 +5,7 @@ import os
 from IPython.display import display, HTML
 import matplotlib as mlp
 import seaborn as sns
-import json
+import json, codecs
 
 filepath = os.getcwd() + "\\IntroDS\\week2\\"
 
@@ -47,10 +47,18 @@ df.fillna(df.mode(axis=0), inplace=True)
 #print(df.head(0))
 
 df.to_csv(filepath + 'wrangled_data.csv')
-df_json_pretty = json.dumps(json.loads(df.to_dict()), indent=4, sort_keys=True)
+""" df_json_pretty = json.dumps(json.loads(df.to_json(orient='records', lines=False)), indent=4, sort_keys=True)
+print(df_json_pretty)
 with open(filepath +'wrangled_data.json', 'w') as outfile:
     json.dump(df_json_pretty, outfile)
-#df.to_json(filepath +'wrangled_data.json', orient='records')
+ """
+
+df.to_json(filepath + 'wrangled_data.json', orient='records')
+with open(filepath + 'wrangled_data.json', 'r') as handle:
+    parsed = json.load(handle)
+with open(filepath + 'wrangled_data.json', 'wt') as out:
+    res = json.dump(parsed, out, sort_keys=True, indent=4, separators=(',', ': '))
+
 
 print('Average traveller')
 print(df[['Age', 'Fare']].median())
