@@ -61,7 +61,7 @@ ahat = a_hat(ymean,xmean, bhat)
 print('bhat ', bhat)
 print('ahat ', ahat)
 
-prediction = ahat+bhat*x +epsilon()
+prediction = ahat+bhat*x
 err = RMSE(prediction, y)
 print('RMSE ', err)
 
@@ -90,12 +90,17 @@ for train, test in kf.split(arr):
 avg_MSE = np.sqrt(sum/k)
 print('kFold RMSE ', avg_MSE)
 
+
+
+###  MULTIVARIATE  ###
 gest = babies5['gestation'].values
 age = babies5['age'].values
 weight = babies5['weight'].values
+bwt = babies5['bwt'].values
 
 X = np.column_stack((gest,age,weight))
 X1 = np.append(X, np.ones((len(X),1)), axis =1)
+
 
 sns.regplot(gest,age,weight)
 plt.show()
@@ -103,31 +108,50 @@ plt.show()
 def b_hat4(X,y):
     Xt = np.transpose(X)
     first = np.matmul(Xt,X)
-    first = np.dot(first.T,first)
-    invXtX = np.linalg.inv(np.linalg.cholesky(first))
-    #invXtX = np.linalg.inv(first)
-    # L = np.linalg.cholesky(first)
-    # invXtX = L*np.transpose(L)
-    return np.matmul(np.matmul(invXtX, Xt),y)
-
-bhat = b_hat4(X, weight)
-print('bhat ', bhat)
+    # invXtX = np.linalg.inv(np.linalg.cholesky(first))
+    # invXtX = np.dot(np.transpose(invXtX),invXtX)
+    invXtX = np.linalg.inv(first)
+    multX = np.matmul(invXtX, Xt)
+    return np.matmul(multX,y)
 
 def multiy(X, bhat):
-    return np.matmul(X,np.transpose(bhat))
-yyy = multiy(X, bhat)
+    return np.matmul(X, bhat)
 
-plt.scatter(gest, age, weight)
-plt.plot(X,prediction)
-plt.show()
+bhat4 = b_hat4(X1, bwt)
+
+print('bhat ', bhat4)
+
+yyy = multiy(X1, bhat4)
+print(yyy.shape)
+""" plt.scatter(gest, age, weight)
+plt.plot(X,yyy)
+plt.show() """
 
 sum4 = 0
 kf2 = KFold(n_splits=len(weight))
-for train, test in kf.split(X):
-    test_data4 = X[test]
-    train_data4 = X[train]
+for train, test in kf2.split(X1):
+    test_data4 = X1[test]
+    train_data4 = X1[train]
     bhat4 = b_hat4(train_data4,train_data4[:,2])
     yhat4 = multiy(test_data4,bhat4)
     sum4 += (RMSE(yhat4, test_data4[:,2]))**2
 avg_MSE4 = np.sqrt(sum4/len(weight)**2)
 print('LOO RMSE ', avg_MSE4)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+x1 = X1[:,0]
+x2 = X1[:,1]
+x3 = X1[:,2]
+
+ax.plot_surface(x1, x2,
+                yyy.reshape(x1.shape),
+                rstride=1,
+                cstride=1,
+                color='None',
+                alpha = 0.4)
+
+ax.scatter3D(x1, x2, x3, c=x3, cmap='Greens');
+ax.plot3D(bwt, yyy)
+plt.show()
